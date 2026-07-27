@@ -1,8 +1,8 @@
-[![Swift Package Manager compatible](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange)](https://github.com/gumob/PunycodeSwift)
-[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg)](https://github.com/gumob/PunycodeSwift)
+[![Swift Package Manager compatible](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange)](https://github.com/futamura/PunycodeSwift)
+[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg)](https://github.com/futamura/PunycodeSwift)
 [![Cocoapods Version](https://img.shields.io/cocoapods/v/Punycode.svg)](https://cocoapods.org/pods/Punycode)
 [![Cocoapods Platform](https://img.shields.io/cocoapods/p/Punycode.svg)](https://cocoadocs.org/docsets/Punycode)
-[![Build](https://github.com/gumob/PunycodeSwift/actions/workflows/main.yml/badge.svg)](https://github.com/gumob/PunycodeSwift/actions/workflows/main.yml)
+[![Build](https://github.com/futamura/PunycodeSwift/actions/workflows/main.yml/badge.svg)](https://github.com/futamura/PunycodeSwift/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/gumob/PunycodeSwift/branch/master/graph/badge.svg)](https://codecov.io/gh/gumob/PunycodeSwift)
 ![Language](https://img.shields.io/badge/Language-Swift%205.0-orange.svg)
 ![Packagist](https://img.shields.io/packagist/l/doctrine/orm.svg)
@@ -32,14 +32,14 @@ Add the following to your `Package.swift` file.
 - macOS, iOS, tvOS, watchOS, visionOS, and Swift 5
     ```swift
     dependencies: [
-        .package(url: "https://github.com/gumob/PunycodeSwift.git", .upToNextMajor(from: "3.0.0"))
+        .package(url: "https://github.com/futamura/PunycodeSwift.git", .upToNextMajor(from: "3.0.0"))
     ]
     ```
 
 - macOS, iOS, tvOS, and Swift 5
     ```swift
     dependencies: [
-        .package(url: "https://github.com/gumob/PunycodeSwift.git", .upToNextMajor(from: "2.1.1"))
+        .package(url: "https://github.com/futamura/PunycodeSwift.git", .upToNextMajor(from: "2.1.1"))
     ]
     ```
 
@@ -50,19 +50,19 @@ Add the following to your `Cartfile` and follow [these instructions](https://git
 - macOS, iOS, tvOS, watchOS, visionOS, and Swift 5
 
     ```
-    github "gumob/PunycodeSwift" ~> 3.0
+    github "futamura/PunycodeSwift" ~> 3.0
     ```
 
 - macOS, iOS, tvOS, and Swift 5
 
     ```
-    github "gumob/PunycodeSwift" ~> 2.0
+    github "futamura/PunycodeSwift" ~> 2.0
     ```
 
 - macOS, iOS, tvOS, and Swift 4
 
     ```
-    github "gumob/PunycodeSwift" ~> 1.0
+    github "futamura/PunycodeSwift" ~> 1.0
     ```
 
 ### CocoaPods
@@ -89,7 +89,7 @@ To integrate TLDExtract into your project, add the following to your `Podfile`.
 
 ## Usage
 
-Full documentation is available at [https://gumob.github.io/PunycodeSwift/swiftdoc/](https://gumob.github.io/PunycodeSwift/swiftdoc/).
+Full documentation is available at [https://futamura.github.io/PunycodeSwift/swiftdoc/](https://futamura.github.io/PunycodeSwift/swiftdoc/).
 
 ### Encode and decode IDNA:
 
