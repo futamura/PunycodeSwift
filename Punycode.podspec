@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.summary                    = "A Pure Swift library for encode and decode punycoded strings supporting iOS, macOS, tvOS, watchOS, and visionOS."
   s.homepage                   = "https://github.com/futamura/PunycodeSwift"
   s.license                    = { :type => "MIT", :file => "LICENSE" }
-  s.author                     = { "Kojiro Futamura" => "gumob.dev@gmail.com" }
+  s.author                     = { "Kojiro Futamura" => "futamura.dev@gmail.com" }
   s.frameworks                 = 'Foundation'
   s.requires_arc               = true
   s.source                     = { :git => "https://github.com/futamura/PunycodeSwift.git", :tag => "#{s.version}" }
