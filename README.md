@@ -3,7 +3,7 @@
 [![Cocoapods Version](https://img.shields.io/cocoapods/v/Punycode.svg)](https://cocoapods.org/pods/Punycode)
 [![Cocoapods Platform](https://img.shields.io/cocoapods/p/Punycode.svg)](https://cocoadocs.org/docsets/Punycode)
 [![Build](https://github.com/futamura/PunycodeSwift/actions/workflows/main.yml/badge.svg)](https://github.com/futamura/PunycodeSwift/actions/workflows/main.yml)
-[![codecov](https://codecov.io/gh/gumob/PunycodeSwift/branch/master/graph/badge.svg)](https://codecov.io/gh/gumob/PunycodeSwift)
+[![codecov](https://codecov.io/gh/futamura/PunycodeSwift/branch/master/graph/badge.svg)](https://codecov.io/gh/futamura/PunycodeSwift)
 ![Language](https://img.shields.io/badge/Language-Swift%205.0-orange.svg)
 ![Packagist](https://img.shields.io/packagist/l/doctrine/orm.svg)
 
