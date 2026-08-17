@@ -127,23 +127,42 @@ public class Puny {
             let oldI: Int = i
             var w: Int = 1
             var k: Int = base
+            var sequenceComplete: Bool = false
             repeat {
                 let character: Character = punycodeInput.removeFirst()
                 guard let digit: Int = punycodeIndex(for: character) else {
                     return nil/// Failing on badly formatted punycode
                 }
-                i += digit * w
+                /// RFC 3492 section 6.4 requires overflow detection
+                let (weighted, weightedOverflow) = digit.multipliedReportingOverflow(by: w)
+                let (accumulated, accumulatedOverflow) = i.addingReportingOverflow(weighted)
+                guard !weightedOverflow, !accumulatedOverflow else {
+                    return nil
+                }
+                i = accumulated
                 let t: Int = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias)
                 if digit < t {
+                    sequenceComplete = true
                     break
                 }
-                w *= base - t
+                let (nextW, nextWOverflow) = w.multipliedReportingOverflow(by: base - t)
+                guard !nextWOverflow else {
+                    return nil
+                }
+                w = nextW
                 k += base
             } while !punycodeInput.isEmpty
+            guard sequenceComplete else {
+                return nil/// The input ended in the middle of a variable-length integer
+            }
             bias = adaptBias(i - oldI, output.count + 1, oldI == 0)
-            n += i / (output.count + 1)
+            let (advancedN, advancedNOverflow) = n.addingReportingOverflow(i / (output.count + 1))
+            guard !advancedNOverflow else {
+                return nil
+            }
+            n = advancedN
             i %= (output.count + 1)
-            guard n >= 0x80, let scalar: Unicode.Scalar = UnicodeScalar(n) else {
+            guard n >= 0x80, let scalar: Unicode.Scalar = UnicodeScalar(n), scalar.isValid else {
                 return nil
             }
             output.insert(Character(scalar), at: i)
@@ -182,7 +201,13 @@ public class Puny {
                     minimumCodepoint = Int(scalar.value)
                 }
             }
-            delta += (minimumCodepoint - n) * (handled + 1)
+            /// RFC 3492 section 6.3 requires overflow detection
+            let (stepped, steppedOverflow) = (minimumCodepoint - n).multipliedReportingOverflow(by: handled + 1)
+            let (advancedDelta, advancedDeltaOverflow) = delta.addingReportingOverflow(stepped)
+            guard !steppedOverflow, !advancedDeltaOverflow else {
+                return nil
+            }
+            delta = advancedDelta
             n = minimumCodepoint
             for scalar: Unicode.Scalar in input.unicodeScalars {
                 if scalar.value < n {
@@ -216,17 +241,28 @@ public class Puny {
 
     /// Returns new string containing IDNA-encoded hostname.
     ///
+    /// The input is mapped before encoding: compatibility decomposition (NFKC,
+    /// which folds full-width forms and alternate dot characters), lowercasing,
+    /// and canonical composition (NFC). This covers the common IDNA mapping
+    /// cases; the full UTS #46 mapping table is intentionally not implemented.
+    ///
     /// - Parameter input: The Substring to be encoded.
     /// - Returns: An IDNA encoded hostname or nil if the string can't be encoded.
     public func encodeIDNA(_ input: Substring) -> String? {
-        let parts: [Substring] = input.split(separator: ".")
+        /// The ideographic full stop survives NFKC, so it is mapped explicitly
+        let mapped: String = input
+            .precomposedStringWithCompatibilityMapping
+            .lowercased()
+            .precomposedStringWithCanonicalMapping
+            .replacingOccurrences(of: "\u{3002}", with: ".")
+        let parts: [Substring] = mapped.split(separator: ".")
         var output: String = ""
         for part: Substring in parts {
             if output.count > 0 {
                 output.append(".")
             }
             if part.rangeOfCharacter(from: CharacterSet.urlHostAllowed.inverted) != nil {
-                guard let encoded: String = part.lowercased().punycodeEncoded else { return nil }
+                guard let encoded: String = part.punycodeEncoded else { return nil }
                 output += ace + encoded
             } else {
                 output += part
@@ -246,8 +282,10 @@ public class Puny {
             if output.count > 0 {
                 output.append(".")
             }
-            if part.hasPrefix(ace) {
-                guard let decoded: String = part.dropFirst(ace.count).punycodeDecoded else { return nil }
+            /// The ACE prefix is case-insensitive (RFC 5890)
+            let lowercasedPart: String = part.lowercased()
+            if lowercasedPart.hasPrefix(ace) {
+                guard let decoded: String = lowercasedPart.dropFirst(ace.count).punycodeDecoded else { return nil }
                 output += decoded
             } else {
                 output += part

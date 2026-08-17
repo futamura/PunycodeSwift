@@ -5,7 +5,7 @@
 import Foundation
 
 /// Returns the last index of the specified element in the substring.
-/// 
+///
 /// - Parameter element: The character to search for.
 /// - Returns: The index of the last occurrence of the character, or nil if the character is not found.
 extension Substring {
@@ -21,13 +21,15 @@ extension Substring {
     }
 }
 
-/// A computed property that checks if the Unicode scalar is valid.
-/// 
+/// A computed property that checks if the Unicode scalar is acceptable in
+/// punycode-encoded text.
+///
 /// - Returns: A boolean value indicating whether the Unicode scalar is valid.
-///   A Unicode scalar is considered valid if its value is less than 0xD880 
-///   or within the range of 0xE000 to 0x1FFFFF.
+///   C1 control characters (U+0080...U+009F) never appear in legitimate
+///   punycode input or output; surrogates and out-of-range values are already
+///   unrepresentable in `Unicode.Scalar`.
 extension UnicodeScalar {
     internal var isValid: Bool {
-        return value < 0xD880 || (value >= 0xE000 && value <= 0x1FFFFF)
+        return !(0x80...0x9F).contains(value)
     }
 }

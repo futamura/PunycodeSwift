@@ -130,6 +130,81 @@ final class PunycodeTests: XCTestCase {
         XCTAssertNoThrow(invalidPunycode.idnaDecoded)
     }
 
+    /// Issue #78: malformed punycode must decode to nil, never to garbage characters.
+
+    func testDecodingIncompleteDigitSequenceReturnsNil() {
+        /// RFC 3492: the input ends in the middle of a variable-length integer
+        XCTAssertNil("y".punycodeDecoded)
+        XCTAssertNil("y-z".punycodeDecoded)
+        XCTAssertNil("a-b-c-d".punycodeDecoded)
+    }
+
+    func testDecodingC1ControlCharactersReturnsNil() {
+        /// "abcd" decodes to U+0080-range C1 control characters, which never
+        /// appear in legitimate text
+        XCTAssertNil("abcd".punycodeDecoded)
+    }
+
+    func testDecodingInvalidDigitsReturnsNil() {
+        XCTAssertNil("-".punycodeDecoded)
+        XCTAssertNil("аб".punycodeDecoded)
+    }
+
+    func testDecodingOverflowReturnsNilInsteadOfTrapping() {
+        /// RFC 3492 section 6.4 requires overflow detection; unchecked
+        /// arithmetic would trap on inputs like these ('9' is the highest
+        /// digit value, so the weight keeps multiplying without a break)
+        XCTAssertNil(String(repeating: "9", count: 30).punycodeDecoded)
+        XCTAssertNil(String(repeating: "z", count: 64).punycodeDecoded)
+    }
+
+    func testDecodingValidEdgeCases() {
+        /// RFC 3492: all-ASCII input encodes to "<input>-", so these round-trip
+        XCTAssertEqual("-".punycodeEncoded, "--")
+        XCTAssertEqual("--".punycodeDecoded, "-")
+        XCTAssertEqual("y".punycodeEncoded, "y-")
+        XCTAssertEqual("y-".punycodeDecoded, "y")
+        /// Valid samples from the issue #78 report
+        XCTAssertEqual("90a".punycodeDecoded, "б")
+        XCTAssertEqual("--9sb".punycodeDecoded, "б-")
+        XCTAssertEqual("--btb".punycodeDecoded, "-б")
+        XCTAssertEqual("80acde".punycodeDecoded, "абвг")
+        XCTAssertEqual("abcd-u8d".punycodeDecoded, "ёabcd")
+        XCTAssertEqual("abcd-y8d".punycodeDecoded, "abcdё")
+        XCTAssertEqual("a-b-c-d-lng".punycodeDecoded, "ёa-b-c-d")
+        XCTAssertEqual("-a-b-c-d-vbhklm5q".punycodeDecoded, "ёпрст-a-b-c-d")
+        XCTAssertEqual("a-b-c-d--3bhklm5q".punycodeDecoded, "a-b-c-d-ёпрст")
+        XCTAssertEqual("bcher-kva".punycodeDecoded, "bücher")
+        XCTAssertEqual("80abnmycp7evc".punycodeDecoded, "обращения")
+        XCTAssertEqual("r1aadaaghijkl".punycodeDecoded, "ттуууфхцчшщ")
+    }
+
+    /// Issue #4: punycodeEncoded is raw RFC 3492 (single label, no ACE prefix);
+    /// idnaEncoded is for hostnames.
+
+    func testPunycodeEncodedIsRawRFC3492() {
+        XCTAssertEqual("goo.gl".punycodeEncoded, "goo.gl-")
+        XCTAssertEqual("goo.gl".idnaEncoded, "goo.gl")
+        XCTAssertEqual("example.com".idnaEncoded, "example.com")
+    }
+
+    func testIDNAEncodingAppliesUnicodeMapping() {
+        /// Full-width forms, alternate dots, and case are mapped before encoding
+        XCTAssertEqual("ＧＯＯ．ＧＬ".idnaEncoded, "goo.gl")
+        XCTAssertEqual("example。com".idnaEncoded, "example.com")
+        XCTAssertEqual("example｡com".idnaEncoded, "example.com")
+        XCTAssertEqual("EXAMPLE.COM".idnaEncoded, "example.com")
+        XCTAssertEqual("日本語。ＪＰ".idnaEncoded, "xn--wgv71a119e.jp")
+        /// NFC: the decomposed form (u + combining diaeresis) encodes
+        /// identically to the composed form
+        XCTAssertEqual("bu\u{0308}cher.de".idnaEncoded, "xn--bcher-kva.de")
+        XCTAssertEqual("bücher.de".idnaEncoded, "xn--bcher-kva.de")
+    }
+
+    func testIDNADecodingAcceptsUppercaseACEPrefix() {
+        XCTAssertEqual("XN--BCHER-KVA.de".idnaDecoded, "bücher.de")
+    }
+
     //    func testFoo1() {
     //        var sushi: String = "寿司"
     //

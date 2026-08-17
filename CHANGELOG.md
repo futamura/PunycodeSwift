@@ -23,6 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Releasing is now a separate tag-triggered workflow that verifies the tag against the project version before publishing. Version tags are immutable.
 - Development tooling: Ruby 3.4 / Bundler 2.7, gems updated to clear all outstanding Dependabot alerts.
 
+### Fixed
+
+- `punycodeDecoded` returned garbage characters for malformed input instead of nil: inputs ending mid-digit-sequence (e.g. `"y-z"`) and inputs decoding to C1 control characters (e.g. `"abcd"`) now return nil ([#78](https://github.com/futamura/PunycodeSwift/issues/78)).
+- `punycodeDecoded` / `punycodeEncoded` could crash on adversarial input due to unchecked integer overflow; the RFC 3492 overflow checks are now implemented and such inputs return nil ([#78](https://github.com/futamura/PunycodeSwift/issues/78)).
+- `idnaDecoded` now accepts an uppercase `XN--` ACE prefix (RFC 5890 defines it as case-insensitive).
+
+### Changed
+
+- **Breaking**: `idnaEncoded` now maps the hostname before encoding — NFKC compatibility folding (full-width forms, alternate dots), lowercasing, and NFC — so inputs like `"ＧＯＯ．ＧＬ"` encode to `"goo.gl"` ([#4](https://github.com/futamura/PunycodeSwift/issues/4)). The full UTS #46 mapping table is intentionally not implemented. `punycodeEncoded` remains the raw RFC 3492 single-label transformation, now documented as such.
+
 ### Deprecated
 
 - CocoaPods distribution ends when the trunk becomes read-only on 2026-12-02. Migrate to Swift Package Manager.
