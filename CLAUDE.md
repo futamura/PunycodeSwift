@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-PunycodeSwift — a pure Swift library (no dependencies) that encodes/decodes Punycode (RFC 3492) and IDNA hostnames via `String` / `Substring` extensions. Distributed as SPM package, Carthage framework, and CocoaPod (pod name: `Punycode`).
+PunycodeSwift — a pure Swift library (no dependencies) that encodes/decodes Punycode (RFC 3492) and IDNA hostnames via `String` / `Substring` extensions. Distributed primarily via SPM. Carthage compatibility is best-effort (not CI-verified); CocoaPods distribution (pod name: `Punycode`) ends when the trunk becomes read-only on 2026-12-02.
 
 ## Commands
 
@@ -53,6 +53,7 @@ Tests live in `Tests/PunycodeTests.swift` (single XCTest file; SPM test target n
 
 - Single source of truth for the version: `MARKETING_VERSION` in `Punycode.xcodeproj/project.pbxproj`. Fastlane and CI both read it. Never edit versions by hand — use `fastlane set_version` / `bump_version`, which also sync `Punycode.podspec` and `.jazzy.yml`.
 - Branch flow: work on `develop`, PR into `main`.
-- CI (`.github/workflows/main.yml`) runs on push and pull request to `main`/`develop`: lint → per-platform xcodebuild tests → SPM → Carthage → pod lib lint. It does not release.
+- CI (`.github/workflows/main.yml`) runs on push and pull request to `main`/`develop`: lint → per-platform xcodebuild tests (simulator devices resolved at runtime via `simctl`) → SPM → pod lib lint. It does not release. Carthage builds are not CI-verified.
+- After 2026-12-02 (CocoaPods trunk read-only): remove the `lint_cocoapods` job from `main.yml` and the pod push from `release.yml`.
 - Releasing is a separate, explicit step: push a bare version tag (e.g. `3.0.1`) matching `MARKETING_VERSION`. `.github/workflows/release.yml` then verifies the tag against the project version and pushes to CocoaPods trunk. Use `./run.sh` → "Github - Update tag" to create the tag.
 - Version tags are immutable: both the release workflow and `run.sh` fail if the tag or trunk version already exists. To re-release, bump the version — never delete/re-push a tag.
