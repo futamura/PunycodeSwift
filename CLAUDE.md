@@ -53,5 +53,6 @@ Tests live in `Tests/PunycodeTests.swift` (single XCTest file; SPM test target n
 
 - Single source of truth for the version: `MARKETING_VERSION` in `Punycode.xcodeproj/project.pbxproj`. Fastlane and CI both read it. Never edit versions by hand — use `fastlane set_version` / `bump_version`, which also sync `Punycode.podspec` and `.jazzy.yml`.
 - Branch flow: work on `develop`, PR into `main`.
-- Pushing to `main` triggers release automation: CI (`.github/workflows/main.yml`) runs lint → per-platform xcodebuild tests → SPM → Carthage → pod lib lint, then tags the repo with the current version and pushes to CocoaPods trunk. A push to `main` is effectively a release.
-- CI runs on push to `main`/`develop` only (PR triggers are commented out).
+- CI (`.github/workflows/main.yml`) runs on push and pull request to `main`/`develop`: lint → per-platform xcodebuild tests → SPM → Carthage → pod lib lint. It does not release.
+- Releasing is a separate, explicit step: push a bare version tag (e.g. `3.0.1`) matching `MARKETING_VERSION`. `.github/workflows/release.yml` then verifies the tag against the project version and pushes to CocoaPods trunk. Use `./run.sh` → "Github - Update tag" to create the tag.
+- Version tags are immutable: both the release workflow and `run.sh` fail if the tag or trunk version already exists. To re-release, bump the version — never delete/re-push a tag.

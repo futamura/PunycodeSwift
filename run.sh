@@ -81,11 +81,10 @@ local cocoapods_trunk_push() {
 		echo "Error: Invalid version number"
 		exit 1
 	fi
-	# Check if the current version already exists in the CocoaPods trunk
+	# Never republish an existing version; released versions are immutable
 	if pod trunk info ${podspec_name} | grep -q "$current_version"; then
-		echo "Start deleting $current_version"
-		# Delete the existing version from the CocoaPods trunk
-		echo "y" | pod trunk delete ${podspec_name} $current_version || true
+		echo "Error: Version $current_version already exists on CocoaPods trunk. Bump the version instead of republishing."
+		exit 1
 	fi
 	echo "Start pushing $current_version"
 	# Push the new version to the CocoaPods trunk
@@ -108,13 +107,13 @@ local github_update_tag() {
 	echo "Current version: $current_version"
 	# If the current version is found
 	if [[ $current_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-		# Check if a tag for the current version already exists
-		if git tag -l | grep -q "$current_version"; then
-			# If the tag exists, delete it from both local and remote
-			git tag -d "$current_version"
-			git push origin ":refs/tags/$current_version"
+		# Tags are immutable: never delete or overwrite an existing version tag
+		if git tag -l | grep -q "^${current_version}$"; then
+			echo "Error: Tag $current_version already exists. Bump the version instead of retagging."
+			exit 1
 		fi
 		# Create a new tag for the current version and push it to the remote repository
+		# Pushing this tag triggers the Release workflow (CocoaPods trunk push)
 		git tag "$current_version"
 		git push origin "$current_version"
 	else
