@@ -205,6 +205,60 @@ final class PunycodeTests: XCTestCase {
         XCTAssertEqual("XN--BCHER-KVA.de".idnaDecoded, "bücher.de")
     }
 
+    /// idnaEncodedURL / idnaDecodedURL: only the host portion of a URL-shaped
+    /// string is transformed; scheme, userinfo, port, path, query, and
+    /// fragment pass through unchanged.
+
+    func testIDNAEncodedURL() {
+        XCTAssertEqual(
+            "http://www.ラーメン.寿司.co.jp".idnaEncodedURL,
+            "http://www.xn--4dkp5a8a.xn--sprr0q.co.jp"
+        )
+        XCTAssertEqual("https://test.com".idnaEncodedURL, "https://test.com")
+        XCTAssertEqual(
+            "http://ラーメン.jp/メニュー?q=寿司#上".idnaEncodedURL,
+            "http://xn--4dkp5a8a.jp/メニュー?q=寿司#上"
+        )
+        XCTAssertEqual("http://ラーメン.jp:8080/".idnaEncodedURL, "http://xn--4dkp5a8a.jp:8080/")
+        XCTAssertEqual("http://user@ラーメン.jp/".idnaEncodedURL, "http://user@xn--4dkp5a8a.jp/")
+        XCTAssertEqual("http://[::1]:8080/".idnaEncodedURL, "http://[::1]:8080/")
+        XCTAssertEqual("//ラーメン.jp/path".idnaEncodedURL, "//xn--4dkp5a8a.jp/path")
+        XCTAssertEqual("www.ラーメン.jp/path".idnaEncodedURL, "www.xn--4dkp5a8a.jp/path")
+        /// "://" inside the query must not be mistaken for a scheme delimiter
+        XCTAssertEqual(
+            "test.com/?u=http://ラーメン.jp".idnaEncodedURL,
+            "test.com/?u=http://ラーメン.jp"
+        )
+    }
+
+    func testIDNADecodedURL() {
+        XCTAssertEqual(
+            "http://www.xn--4dkp5a8a.xn--sprr0q.co.jp".idnaDecodedURL,
+            "http://www.ラーメン.寿司.co.jp"
+        )
+        XCTAssertEqual("http://xn--4dkp5a8a.jp:8080/x".idnaDecodedURL, "http://ラーメン.jp:8080/x")
+        XCTAssertEqual("http://user@xn--4dkp5a8a.jp/".idnaDecodedURL, "http://user@ラーメン.jp/")
+        XCTAssertEqual("http://[::1]/".idnaDecodedURL, "http://[::1]/")
+        XCTAssertEqual("https://test.com".idnaDecodedURL, "https://test.com")
+    }
+
+    func testIDNAURLRoundTrip() {
+        let url: String = "http://user@www.ラーメン.寿司.co.jp:8080/メニュー?q=寿司#上"
+        guard let encoded: String = url.idnaEncodedURL else {
+            return XCTFail("encoding failed")
+        }
+        XCTAssertEqual(encoded.idnaDecodedURL, url)
+    }
+
+    func testIDNAURLInvalidInputReturnsNil() {
+        /// Malformed punycode in the host
+        XCTAssertNil("http://xn--abcd.jp".idnaDecodedURL)
+        /// C1 control character in the host
+        XCTAssertNil("http://a\u{0085}b.jp".idnaEncodedURL)
+        /// Unterminated IPv6 literal
+        XCTAssertNil("http://[::1/".idnaEncodedURL)
+    }
+
     //    func testFoo1() {
     //        var sushi: String = "寿司"
     //

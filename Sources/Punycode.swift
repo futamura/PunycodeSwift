@@ -293,4 +293,79 @@ public class Puny {
         }
         return output
     }
+
+    /// Returns a new string with the host portion of a URL-shaped string
+    /// IDNA-encoded. Scheme, userinfo, port, path, query, and fragment are
+    /// preserved unchanged.
+    ///
+    /// - Parameter input: The Substring containing a URL or a bare hostname.
+    /// - Returns: The string with its host IDNA-encoded, or nil if the host can't be encoded.
+    public func encodeIDNAURL(_ input: Substring) -> String? {
+        return transformURLHost(input) { encodeIDNA($0) }
+    }
+
+    /// Returns a new string with the host portion of a URL-shaped string
+    /// decoded from IDNA representation. Scheme, userinfo, port, path, query,
+    /// and fragment are preserved unchanged.
+    ///
+    /// - Parameter input: The Substring containing a URL or a bare hostname.
+    /// - Returns: The string with its host decoded, or nil if the host doesn't contain correct encoding.
+    public func decodedIDNAURL(_ input: Substring) -> String? {
+        return transformURLHost(input) { decodedIDNA($0) }
+    }
+
+    /// Locates the host portion of `[scheme://][userinfo@]host[:port][/path?query#fragment]`
+    /// and replaces it with the result of `transform`. IPv6 literals pass
+    /// through untransformed; an unterminated literal returns nil.
+    private func transformURLHost(_ input: Substring, using transform: (Substring) -> String?) -> String? {
+        /// Authority starts after "scheme://" or a protocol-relative "//"
+        var authorityStart: Substring.Index = input.startIndex
+        if let delimiterRange: Range<Substring.Index> = input.range(of: "://"),
+            isValidScheme(input[..<delimiterRange.lowerBound])
+        {
+            authorityStart = delimiterRange.upperBound
+        } else if input.hasPrefix("//") {
+            authorityStart = input.index(input.startIndex, offsetBy: 2)
+        }
+
+        /// Authority ends at the first path, query, or fragment delimiter
+        let authorityEnd: Substring.Index =
+            input[authorityStart...].firstIndex { $0 == "/" || $0 == "?" || $0 == "#" } ?? input.endIndex
+
+        /// The host follows the last "@" of the authority
+        let authority: Substring = input[authorityStart..<authorityEnd]
+        var hostStart: Substring.Index = authorityStart
+        if let atIndex: Substring.Index = authority.lastIndex(of: "@") {
+            hostStart = authority.index(after: atIndex)
+        }
+
+        let hostAndPort: Substring = input[hostStart..<authorityEnd]
+        if hostAndPort.hasPrefix("[") {
+            /// IPv6 literals are not IDNA-encoded
+            guard hostAndPort.contains("]") else {
+                return nil
+            }
+            return String(input)
+        }
+
+        /// The host ends where the port begins
+        let hostEnd: Substring.Index = hostAndPort.firstIndex(of: ":") ?? authorityEnd
+
+        guard let transformedHost: String = transform(input[hostStart..<hostEnd]) else {
+            return nil
+        }
+        return String(input[..<hostStart]) + transformedHost + String(input[hostEnd...])
+    }
+
+    /// A scheme is a letter followed by letters, digits, "+", "-", or "." (RFC 3986).
+    /// Anything else before "://" (for example a query string) is not a scheme.
+    private func isValidScheme(_ candidate: Substring) -> Bool {
+        guard let first: Character = candidate.first, first.isLetter, first.isASCII else {
+            return false
+        }
+        return candidate.allSatisfy { character in
+            (character.isASCII && (character.isLetter || character.isNumber))
+                || character == "+" || character == "-" || character == "."
+        }
+    }
 }

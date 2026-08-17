@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `idnaEncodedURL` / `idnaDecodedURL` on `String` and `Substring`: URL-aware variants that transform only the host of a URL-shaped string (`[scheme://][userinfo@]host[:port][/path?query#fragment]`), leaving every other component unchanged. Use these instead of applying `idnaEncoded` to a full URL.
 - Linux support, verified by CI (`swift build` / `swift test` on the official Swift container).
 - GitHub Releases are now created automatically when a version tag is pushed.
 - `CI Success` aggregate check for branch protection.

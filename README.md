@@ -115,7 +115,25 @@ sushi = sushi.idnaDecoded!
 print(sushi)  // "寿司"
 ```
 
+### Encode and decode the host of a URL:
+
+`idnaEncoded` expects a bare hostname. For a full URL, use `idnaEncodedURL` / `idnaDecodedURL`, which transform only the host and leave the scheme, userinfo, port, path, query, and fragment unchanged.
+
+```swift
+import Punycode
+
+var url: String = "http://www.ラーメン.寿司.co.jp/メニュー"
+
+url = url.idnaEncodedURL!
+print(url)  // http://www.xn--4dkp5a8a.xn--sprr0q.co.jp/メニュー
+
+url = url.idnaDecodedURL!
+print(url)  // http://www.ラーメン.寿司.co.jp/メニュー
+```
+
 ### Encode and decode Punycode directly:
+
+`punycodeEncoded` / `punycodeDecoded` are the raw RFC 3492 transformation of a single label: no `xn--` prefix is added and dots are not treated as label separators.
 
 ```swift
 import Punycode
