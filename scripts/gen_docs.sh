@@ -28,7 +28,7 @@ swift symbolgraph-extract \
 
 xcrun docc convert \
   --fallback-display-name Punycode \
-  --fallback-bundle-identifier com.futamura.Punycode \
+  --fallback-bundle-identifier dev.futamura.Punycode \
   --fallback-bundle-version "${version}" \
   --additional-symbol-graph-dir .build/symbol-graphs \
   --transform-for-static-hosting \
