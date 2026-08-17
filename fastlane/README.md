@@ -13,53 +13,85 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 # Available Actions
 
-### Run all jobs
+### run_all
 
 ```sh
-bundle exec fastlane run_all
+[bundle exec] fastlane run_all
 ```
 
-### Set version number
+Run all jobs
+
+### lint_swift
 
 ```sh
-bundle exec fastlane set_version
+[bundle exec] fastlane lint_swift
 ```
 
-### Bump version number
+Lint codes with swift-format
+
+### set_version
 
 ```sh
-bundle exec fastlane bump_version
+[bundle exec] fastlane set_version
 ```
 
-### Run all tests
+Set version number
+
+### bump_version
 
 ```sh
-bundle exec fastlane tests
+[bundle exec] fastlane bump_version
 ```
 
-### Build SPM
+Bump version number
+
+### tests
 
 ```sh
-bundle exec fastlane build_spm
+[bundle exec] fastlane tests
 ```
 
-### Build Carthage
+Run all tests
+
+### build_spm
 
 ```sh
-bundle exec fastlane build_carthage
+[bundle exec] fastlane build_spm
 ```
 
-### Lint Cocoapods
+Lint Swift Package Manager
+
+### build_carthage
 
 ```sh
-bundle exec fastlane lint_cocoapods
+[bundle exec] fastlane build_carthage
 ```
 
-### Push Cocoapods
+Build Carthage
+
+### lint_cocoapods
 
 ```sh
-bundle exec fastlane push_cocoapods
+[bundle exec] fastlane lint_cocoapods
 ```
+
+Lint Cocoapods
+
+### push_cocoapods
+
+```sh
+[bundle exec] fastlane push_cocoapods
+```
+
+Push Cocoapods
+
+### gen_docs
+
+```sh
+[bundle exec] fastlane gen_docs
+```
+
+Generate Swift Docs
 
 ----
 
