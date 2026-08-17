@@ -21,7 +21,8 @@ Punycode is a representation of Unicode with the limited ASCII character subset 
 - tvOS 12.0 or later
 - watchOS 4.0 or later
 - visionOS 1.0 or later
-- Swift 5.0 or later
+- Linux
+- Swift 5.9 or later (Xcode 15 or later) for Swift Package Manager
 
 ## Installation
 
