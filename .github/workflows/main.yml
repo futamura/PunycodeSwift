@@ -54,7 +54,6 @@ jobs:
           all_files: false # default is false
           max_warnings: -1 # default is -1 (infinity)
 
-  ### ref: https://github.com/Alamofire/Alamofire/blob/master/.github/workflows/ci.yml
   ### Uses the default Xcode of each runner image so the matrix keeps working as images update.
   test_macOS:
     name: ${{ matrix.name }}
@@ -91,77 +90,69 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Catalyst
-        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project "${{ env.project_name }}.xcodeproj" -scheme ${{ env.scheme }} -destination "platform=macOS,variant=Mac Catalyst" clean test 2>&1 | xcbeautify --renderer github-actions
+        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project "${{ env.project_name }}.xcodeproj" -scheme ${{ env.scheme }} -destination "platform=macOS,variant=Mac Catalyst" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean test 2>&1 | xcbeautify --renderer github-actions
     needs: lint_code
 
-  test_iOS:
+  ### Simulator device names change with every Xcode release, so resolve an available
+  ### device at runtime via simctl instead of hardcoding names that rot.
+  test_simulators:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - destination: "platform=iOS Simulator,name=iPhone 16 Pro"
-            name: "Test: iOS, Xcode 26"
-            runsOn: macos-26
-          - destination: "platform=iOS Simulator,name=iPhone 16 Pro"
-            name: "Test: iOS, Xcode 16.4"
-            runsOn: macos-15
-    steps:
-      - uses: actions/checkout@v4
-      - name: ${{ matrix.name }}
-        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project "${{ env.project_name }}.xcodeproj" -scheme ${{ env.scheme }} -destination "${{ matrix.destination }}" clean test 2>&1 | xcbeautify --renderer github-actions
-    needs: lint_code
-
-  test_tvOS:
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - destination: "platform=tvOS Simulator,name=Apple TV"
-            name: "Test: tvOS, Xcode 26"
-            runsOn: macos-26
-          - destination: "platform=tvOS Simulator,name=Apple TV"
-            name: "Test: tvOS, Xcode 16.4"
-            runsOn: macos-15
-    steps:
-      - uses: actions/checkout@v4
-      - name: ${{ matrix.name }}
-        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project "${{ env.project_name }}.xcodeproj" -scheme ${{ env.scheme }} -destination "${{ matrix.destination }}" clean test 2>&1 | xcbeautify --renderer github-actions
-    needs: lint_code
-
-  test_visionOS:
-    name: "Test: visionOS"
-    runs-on: macos-26
     timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - name: visionOS
-        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project "${{ env.project_name }}.xcodeproj" -scheme "${{ env.scheme }}" -destination "platform=visionOS Simulator,name=Apple Vision Pro" clean test 2>&1 | xcbeautify --renderer github-actions
-    needs: lint_code
-
-  test_watchOS:
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         include:
-          - destination: "platform=watchOS Simulator,name=Apple Watch Series 10 (46mm)"
-            name: "Test: watchOS, Xcode 26"
+          - platform: "iOS"
+            osFilter: "SimRuntime\\.iOS"
+            devicePrefix: "iPhone"
             runsOn: macos-26
-          - destination: "platform=watchOS Simulator,name=Apple Watch Series 10 (46mm)"
-            name: "Test: watchOS, Xcode 16.4"
+            name: "Test: iOS, Xcode 26"
+          - platform: "iOS"
+            osFilter: "SimRuntime\\.iOS"
+            devicePrefix: "iPhone"
             runsOn: macos-15
+            name: "Test: iOS, Xcode 16.4"
+          - platform: "tvOS"
+            osFilter: "SimRuntime\\.tvOS"
+            devicePrefix: "Apple TV"
+            runsOn: macos-26
+            name: "Test: tvOS, Xcode 26"
+          - platform: "tvOS"
+            osFilter: "SimRuntime\\.tvOS"
+            devicePrefix: "Apple TV"
+            runsOn: macos-15
+            name: "Test: tvOS, Xcode 16.4"
+          - platform: "watchOS"
+            osFilter: "SimRuntime\\.watchOS"
+            devicePrefix: "Apple Watch"
+            runsOn: macos-26
+            name: "Test: watchOS, Xcode 26"
+          - platform: "watchOS"
+            osFilter: "SimRuntime\\.watchOS"
+            devicePrefix: "Apple Watch"
+            runsOn: macos-15
+            name: "Test: watchOS, Xcode 16.4"
+          - platform: "visionOS"
+            osFilter: "(xrOS|visionOS)"
+            devicePrefix: "Apple Vision"
+            runsOn: macos-26
+            name: "Test: visionOS, Xcode 26"
     steps:
       - uses: actions/checkout@v4
       - name: ${{ matrix.name }}
-        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project "${{ env.project_name }}.xcodeproj" -scheme ${{ env.scheme }} -destination "${{ matrix.destination }}" clean test 2>&1 | xcbeautify --renderer github-actions
+        run: |
+          set -o pipefail
+          device=$(xcrun simctl list devices available -j \
+            | jq -r --arg os "${{ matrix.osFilter }}" '.devices | to_entries[] | select(.key | test($os)) | .value[] | .name' \
+            | grep -F "${{ matrix.devicePrefix }}" | head -1)
+          if [ -z "$device" ]; then
+            echo "::error::No available ${{ matrix.platform }} simulator matching '${{ matrix.devicePrefix }}' on this image."
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "Testing on simulator: $device"
+          env NSUnbufferedIO=YES xcodebuild -project "${{ env.project_name }}.xcodeproj" -scheme ${{ env.scheme }} -destination "platform=${{ matrix.platform }} Simulator,name=$device" clean test 2>&1 | xcbeautify --renderer github-actions
     needs: lint_code
 
   SPM:
@@ -180,45 +171,20 @@ jobs:
       - uses: actions/checkout@v4
       - name: Test SPM
         run: swift test -c debug 2>&1 | xcbeautify --renderer github-actions
-    needs: [test_macOS, test_Catalyst, test_iOS, test_tvOS, test_watchOS, test_visionOS]
+    needs: [test_macOS, test_Catalyst, test_simulators]
 
-  carthage:
-    name: ${{ matrix.name }}
-    runs-on: macos-26
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-          - name: "Carthage: macOS"
-            platform: "macos"
-          - name: "Carthage: iOS"
-            platform: "ios"
-          - name: "Carthage: tvOS"
-            platform: "tvos"
-          - name: "Carthage: watchOS"
-            platform: "watchos"
-          - name: "Carthage: visionOS"
-            platform: "visionos"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build Carthage for ${{ matrix.platform }}
-        run: |
-          carthage build \
-            --no-skip-current \
-            --platform ${{ matrix.platform }} \
-            --use-xcframeworks \
-            --cache-builds
-    needs: SPM
-
+  ### Carthage builds are no longer verified by CI (Carthage is in maintenance mode;
+  ### compatibility is kept on a best-effort basis via the Xcode project).
+  ### CocoaPods linting is reduced to macOS/iOS Release: the trunk becomes read-only
+  ### on 2026-12-02 and this job will be removed after that date.
   lint_cocoapods:
     name: "Pods: ${{ matrix.platform }}, ${{ matrix.configuration }}"
     runs-on: macos-26
     strategy:
       fail-fast: true
       matrix:
-        platform: [macos, ios, tvos, watchos, visionos]
-        configuration: [Release, Debug]
+        platform: [macos, ios]
+        configuration: [Release]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -234,4 +200,4 @@ jobs:
             --configuration=${{ matrix.configuration }} \
             --platforms=${{ matrix.platform }} \
             ${{ env.podspec_name }}.podspec
-    needs: carthage
+    needs: SPM
