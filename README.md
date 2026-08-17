@@ -1,10 +1,8 @@
 [![Swift Package Manager compatible](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange)](https://github.com/futamura/PunycodeSwift)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg)](https://github.com/futamura/PunycodeSwift)
-[![Cocoapods Version](https://img.shields.io/cocoapods/v/Punycode.svg)](https://cocoapods.org/pods/Punycode)
-[![Cocoapods Platform](https://img.shields.io/cocoapods/p/Punycode.svg)](https://cocoadocs.org/docsets/Punycode)
 [![Build](https://github.com/futamura/PunycodeSwift/actions/workflows/main.yml/badge.svg)](https://github.com/futamura/PunycodeSwift/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/futamura/PunycodeSwift/branch/main/graph/badge.svg)](https://codecov.io/gh/futamura/PunycodeSwift)
-![Language](https://img.shields.io/badge/Language-Swift%205.0-orange.svg)
+![Language](https://img.shields.io/badge/Language-Swift%205.9-orange.svg)
 ![License](https://img.shields.io/github/license/futamura/PunycodeSwift.svg)
 
 # PunycodeSwift
