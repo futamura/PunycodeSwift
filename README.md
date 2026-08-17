@@ -3,9 +3,9 @@
 [![Cocoapods Version](https://img.shields.io/cocoapods/v/Punycode.svg)](https://cocoapods.org/pods/Punycode)
 [![Cocoapods Platform](https://img.shields.io/cocoapods/p/Punycode.svg)](https://cocoadocs.org/docsets/Punycode)
 [![Build](https://github.com/futamura/PunycodeSwift/actions/workflows/main.yml/badge.svg)](https://github.com/futamura/PunycodeSwift/actions/workflows/main.yml)
-[![codecov](https://codecov.io/gh/futamura/PunycodeSwift/branch/master/graph/badge.svg)](https://codecov.io/gh/futamura/PunycodeSwift)
+[![codecov](https://codecov.io/gh/futamura/PunycodeSwift/branch/main/graph/badge.svg)](https://codecov.io/gh/futamura/PunycodeSwift)
 ![Language](https://img.shields.io/badge/Language-Swift%205.0-orange.svg)
-![Packagist](https://img.shields.io/packagist/l/doctrine/orm.svg)
+![License](https://img.shields.io/github/license/futamura/PunycodeSwift.svg)
 
 # PunycodeSwift
 
@@ -24,6 +24,11 @@ Punycode is a representation of Unicode with the limited ASCII character subset 
 - Swift 5.0 or later
 
 ## Installation
+
+Swift Package Manager is the recommended way to install PunycodeSwift.
+
+> [!IMPORTANT]
+> The CocoaPods trunk becomes permanently read-only on December 2, 2026. Versions released after that date will be available via Swift Package Manager (and Carthage on a best-effort basis) only. If you are using CocoaPods, please migrate to Swift Package Manager.
 
 ### Swift Package Manager
 
@@ -44,6 +49,9 @@ Add the following to your `Package.swift` file.
     ```
 
 ### Carthage
+
+> [!NOTE]
+> Carthage itself is in maintenance mode. Carthage compatibility is kept on a best-effort basis and is no longer verified by CI.
 
 Add the following to your `Cartfile` and follow [these instructions](https://github.com/Carthage/Carthage#adding-frameworks-to-an-application).
 
@@ -67,7 +75,10 @@ Add the following to your `Cartfile` and follow [these instructions](https://git
 
 ### CocoaPods
 
-To integrate TLDExtract into your project, add the following to your `Podfile`.
+> [!WARNING]
+> CocoaPods distribution ends when the trunk becomes read-only on December 2, 2026. Existing versions will remain installable, but no new versions will be published. Please migrate to Swift Package Manager.
+
+To integrate PunycodeSwift into your project, add the following to your `Podfile`.
 
 - macOS, iOS, tvOS, watchOS, visionOS, and Swift 5.0
 

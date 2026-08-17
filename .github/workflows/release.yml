@@ -1,0 +1,44 @@
+# Publishes the library to CocoaPods trunk when a version tag is pushed.
+# Tags are immutable: pushing a tag for a version that is already published fails
+# instead of replacing the existing release. Bump the version and tag again instead.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+env:
+  project_name: Punycode
+  podspec_name: Punycode
+
+jobs:
+  publish_cocoapods:
+    name: Publish to CocoaPods
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify tag matches project version
+        run: |
+          set -eo pipefail
+          current_version=$(grep -m1 'MARKETING_VERSION' "${{ env.project_name }}.xcodeproj/project.pbxproj" | sed 's/.*= //;s/;//')
+          echo "Project version: ${current_version} / Tag: ${GITHUB_REF_NAME}"
+          if [[ "${current_version}" != "${GITHUB_REF_NAME}" ]]; then
+            echo "Error: Tag (${GITHUB_REF_NAME}) does not match MARKETING_VERSION (${current_version})."
+            exit 1
+          fi
+
+      - name: Publish to CocoaPods trunk
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+        run: |
+          set -eo pipefail
+          ### Never republish an existing version; released versions are immutable.
+          if pod trunk info ${{ env.podspec_name }} | grep -q "${GITHUB_REF_NAME}"; then
+            echo "Error: Version ${GITHUB_REF_NAME} already exists on CocoaPods trunk. Bump the version instead of republishing."
+            exit 1
+          fi
+          pod trunk push ${{ env.podspec_name }}.podspec --allow-warnings
