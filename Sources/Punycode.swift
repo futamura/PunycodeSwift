@@ -128,8 +128,11 @@ public class Puny {
             var w: Int = 1
             var k: Int = base
             var sequenceComplete: Bool = false
-            repeat {
-                let character: Character = punycodeInput.removeFirst()
+            while !sequenceComplete {
+                /// The input must not end in the middle of a variable-length integer
+                guard let character: Character = punycodeInput.popFirst() else {
+                    return nil
+                }
                 guard let digit: Int = punycodeIndex(for: character) else {
                     return nil/// Failing on badly formatted punycode
                 }
@@ -143,17 +146,14 @@ public class Puny {
                 let t: Int = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias)
                 if digit < t {
                     sequenceComplete = true
-                    break
+                } else {
+                    let (nextW, nextWOverflow) = w.multipliedReportingOverflow(by: base - t)
+                    guard !nextWOverflow else {
+                        return nil
+                    }
+                    w = nextW
+                    k += base
                 }
-                let (nextW, nextWOverflow) = w.multipliedReportingOverflow(by: base - t)
-                guard !nextWOverflow else {
-                    return nil
-                }
-                w = nextW
-                k += base
-            } while !punycodeInput.isEmpty
-            guard sequenceComplete else {
-                return nil/// The input ended in the middle of a variable-length integer
             }
             bias = adaptBias(i - oldI, output.count + 1, oldI == 0)
             let (advancedN, advancedNOverflow) = n.addingReportingOverflow(i / (output.count + 1))

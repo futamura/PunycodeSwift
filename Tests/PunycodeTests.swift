@@ -224,6 +224,9 @@ final class PunycodeTests: XCTestCase {
         XCTAssertEqual("http://[::1]:8080/".idnaEncodedURL, "http://[::1]:8080/")
         XCTAssertEqual("//ラーメン.jp/path".idnaEncodedURL, "//xn--4dkp5a8a.jp/path")
         XCTAssertEqual("www.ラーメン.jp/path".idnaEncodedURL, "www.xn--4dkp5a8a.jp/path")
+        /// Invalid schemes are not treated as scheme delimiters
+        XCTAssertEqual("1a://ラーメン.jp/x".idnaEncodedURL, "1a://ラーメン.jp/x")
+        XCTAssertEqual("://test.com".idnaEncodedURL, "://test.com")
         /// "://" inside the query must not be mistaken for a scheme delimiter
         XCTAssertEqual(
             "test.com/?u=http://ラーメン.jp".idnaEncodedURL,
