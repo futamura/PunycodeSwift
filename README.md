@@ -100,7 +100,7 @@ To integrate PunycodeSwift into your project, add the following to your `Podfile
 
 ## Usage
 
-Full documentation is available at [https://futamura.github.io/PunycodeSwift/swiftdoc/](https://futamura.github.io/PunycodeSwift/swiftdoc/).
+Full documentation is available at [https://futamura.github.io/PunycodeSwift/documentation/punycode/](https://futamura.github.io/PunycodeSwift/documentation/punycode/).
 
 ### Encode and decode IDNA:
 

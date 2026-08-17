@@ -25,8 +25,8 @@ bundle exec fastlane lint_swift       # swift-format lint
 bundle exec fastlane build_spm        # swift build + test
 bundle exec fastlane build_carthage   # Carthage builds per platform
 bundle exec fastlane lint_cocoapods   # pod lib lint
-bundle exec fastlane gen_docs         # jazzy docs into docs/
-bundle exec fastlane set_version      # prompt for version; syncs pbxproj + podspec + .jazzy.yml
+bundle exec fastlane gen_docs         # DocC static site into docc-site/ (via scripts/gen_docs.sh)
+bundle exec fastlane set_version      # prompt for version; syncs pbxproj + podspec
 bundle exec fastlane bump_version     # patch/minor/major bump; same sync
 
 # Interactive job menu (fzf)
@@ -51,9 +51,10 @@ Tests live in `Tests/PunycodeTests.swift` (single XCTest file; SPM test target n
 
 ## Versioning and release
 
-- Single source of truth for the version: `MARKETING_VERSION` in `Punycode.xcodeproj/project.pbxproj`. Fastlane and CI both read it. Never edit versions by hand — use `fastlane set_version` / `bump_version`, which also sync `Punycode.podspec` and `.jazzy.yml`.
+- Single source of truth for the version: `MARKETING_VERSION` in `Punycode.xcodeproj/project.pbxproj`. Fastlane and CI both read it. Never edit versions by hand — use `fastlane set_version` / `bump_version`, which also sync `Punycode.podspec`.
 - Branch flow: work on `develop`, PR into `main`.
 - CI (`.github/workflows/main.yml`) runs on push and pull request to `main`/`develop`: lint → per-platform xcodebuild tests (simulator devices resolved at runtime via `simctl`) → SPM → pod lib lint. It does not release. Carthage builds are not CI-verified.
+- Documentation (`.github/workflows/docs.yml`) builds the DocC site with `scripts/gen_docs.sh` (symbolgraph-extract with `-emit-extension-block-symbols` — required because the whole public API is extensions on String/Substring — then `docc convert`) and deploys it to GitHub Pages on every push to `main`. The site is not tracked in git; `docs/` no longer exists.
 - After 2026-12-02 (CocoaPods trunk read-only): remove the `lint_cocoapods` job from `main.yml` and the pod push from `release.yml`.
 - Releasing is a separate, explicit step: push a bare version tag (e.g. `3.0.1`) matching `MARKETING_VERSION`. `.github/workflows/release.yml` then verifies the tag against the project version, creates a GitHub Release (notes taken from the tag's `CHANGELOG.md` section, falling back to generated notes), and pushes to CocoaPods trunk. Use `./run.sh` → "Github - Update tag" to create the tag.
 - Version tags are immutable: both the release workflow and `run.sh` fail if the tag or trunk version already exists. To re-release, bump the version — never delete/re-push a tag.

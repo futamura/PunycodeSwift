@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - CI runs on pushes and pull requests to `main` and `develop`, on current macOS runner images, resolving simulator destinations at runtime.
+- API documentation migrated from jazzy to DocC, built and deployed to GitHub Pages by CI; the generated site is no longer tracked in the repository. New URL: <https://futamura.github.io/PunycodeSwift/documentation/punycode/>.
 - Releasing is now a separate tag-triggered workflow that verifies the tag against the project version before publishing. Version tags are immutable.
 - Development tooling: Ruby 3.4 / Bundler 2.7, gems updated to clear all outstanding Dependabot alerts.
 
