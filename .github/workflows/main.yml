@@ -16,18 +16,13 @@ on:
       - Punycode.xcodeproj/**
       - Sources/**
       - Tests/**
+  ### No paths filter on pull_request: the "CI Success" job is a required status
+  ### check on main, so it must report on every PR (a filtered-out workflow would
+  ### leave the check "expected" forever and block merging docs-only PRs).
   pull_request:
     branches:
       - main
       - develop
-    paths:
-      - .github/workflows/**
-      - .swift-format
-      - Package.swift
-      - Punycode.podspec
-      - Punycode.xcodeproj/**
-      - Sources/**
-      - Tests/**
 
 env:
   project_name: Punycode
@@ -201,3 +196,19 @@ jobs:
             --platforms=${{ matrix.platform }} \
             ${{ env.podspec_name }}.podspec
     needs: SPM
+
+  ### Aggregate gate used as the sole required status check on main.
+  ### Matrix job names change with Xcode versions; this name must stay stable.
+  ci_success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [lint_code, test_macOS, test_Catalyst, test_simulators, SPM, lint_cocoapods]
+    steps:
+      - name: Check all jobs succeeded
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more required jobs failed or were cancelled."
+            exit 1
+          fi
+          echo "All required jobs succeeded."
