@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Codecov project status now allows a 1% threshold, so coverage noise no longer fails CI.
 
+### Fixed
+
+- The framework target now sets `APPLICATION_EXTENSION_API_ONLY`, so linking the Xcode-built framework (e.g. via Carthage) from an app extension no longer emits a "not safe for use in application extensions" warning ([#2](https://github.com/futamura/PunycodeSwift/issues/2)). Not applicable to SPM consumers.
+
 ## [4.0.0] - 2026-08-18
 
 ### Added
