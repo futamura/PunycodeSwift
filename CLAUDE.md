@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-PunycodeSwift — a pure Swift library (no dependencies) that encodes/decodes Punycode (RFC 3492) and IDNA hostnames via `String` / `Substring` extensions. Runs on all Apple platforms and Linux. Distributed primarily via SPM. Carthage compatibility is best-effort (not CI-verified); CocoaPods distribution (pod name: `Punycode`) ends when the trunk becomes read-only on 2026-12-02.
+PunycodeSwift — a pure Swift library (no dependencies) that encodes/decodes Punycode (RFC 3492) and IDNA hostnames via `String` / `Substring` extensions. Runs on all Apple platforms and Linux. Distributed via SPM. Carthage compatibility is best-effort (not CI-verified); CocoaPods distribution has ended (3.0.0 is the last version published under the pod name `Punycode`).
 
 ## Commands
 
@@ -24,10 +24,9 @@ bundle exec fastlane tests            # xcodebuild tests on all platforms (macOS
 bundle exec fastlane lint_swift       # swift-format lint
 bundle exec fastlane build_spm        # swift build + test
 bundle exec fastlane build_carthage   # Carthage builds per platform
-bundle exec fastlane lint_cocoapods   # pod lib lint
 bundle exec fastlane gen_docs         # DocC static site into docc-site/ (via scripts/gen_docs.sh)
-bundle exec fastlane set_version      # prompt for version; syncs pbxproj + podspec
-bundle exec fastlane bump_version     # patch/minor/major bump; same sync
+bundle exec fastlane set_version      # prompt for version; sets MARKETING_VERSION in the pbxproj
+bundle exec fastlane bump_version     # patch/minor/major bump; same effect
 
 # Interactive job menu (fzf)
 ./run.sh
@@ -51,11 +50,10 @@ Tests live in `Tests/PunycodeTests.swift` (single XCTest file; SPM test target n
 
 ## Versioning and release
 
-- Single source of truth for the version: `MARKETING_VERSION` in `Punycode.xcodeproj/project.pbxproj`. Fastlane and CI both read it. Never edit versions by hand — use `fastlane set_version` / `bump_version`, which also sync `Punycode.podspec`.
+- Single source of truth for the version: `MARKETING_VERSION` in `Punycode.xcodeproj/project.pbxproj`. Fastlane and CI both read it. Never edit versions by hand — use `fastlane set_version` / `bump_version`.
 - Branch flow: work on `develop`, PR into `main`.
-- CI (`.github/workflows/main.yml`) runs on push and pull request to `main`/`develop`: lint → per-platform xcodebuild tests (simulator devices resolved at runtime via `simctl`) → SPM (macOS + Linux via the official Swift container) → pod lib lint. It does not release. Carthage builds are not CI-verified.
+- CI (`.github/workflows/main.yml`) runs on push and pull request to `main`/`develop`: lint → per-platform xcodebuild tests (simulator devices resolved at runtime via `simctl`) → SPM (macOS + Linux via the official Swift container). It does not release. Carthage builds are not CI-verified.
 - Documentation (`.github/workflows/docs.yml`) builds the DocC site with `scripts/gen_docs.sh` (symbolgraph-extract with `-emit-extension-block-symbols` — required because the whole public API is extensions on String/Substring — then `docc convert`) and deploys it to GitHub Pages on every push to `main`. The site is not tracked in git; `docs/` no longer exists.
-- After 2026-12-02 (CocoaPods trunk read-only): remove the `lint_cocoapods` job from `main.yml` and the pod push from `release.yml`.
-- Releasing is a separate, explicit step: push a bare version tag (e.g. `3.0.1`) matching `MARKETING_VERSION`. `.github/workflows/release.yml` then verifies the tag against the project version, creates a GitHub Release (notes taken from the tag's `CHANGELOG.md` section, falling back to generated notes), and pushes to CocoaPods trunk. Use `./run.sh` → "Github - Update tag" to create the tag.
-- Version tags are immutable: both the release workflow and `run.sh` fail if the tag or trunk version already exists. To re-release, bump the version — never delete/re-push a tag.
+- Releasing is a separate, explicit step: push a bare version tag (e.g. `4.0.1`) matching `MARKETING_VERSION`. `.github/workflows/release.yml` then verifies the tag against the project version and creates a GitHub Release (notes taken from the tag's `CHANGELOG.md` section, falling back to generated notes). Use `./run.sh` → "Github - Update tag" to create the tag.
+- Version tags are immutable: both the release workflow and `run.sh` fail if the tag already exists. To re-release, bump the version — never delete/re-push a tag.
 - Keep `CHANGELOG.md` (Keep a Changelog format) current: user-facing changes go under **Unreleased**; when releasing, rename that section to the new version with the date and add its compare link. The release workflow extracts this section for the GitHub Release notes.

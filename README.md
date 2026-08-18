@@ -27,11 +27,18 @@ Punycode is a representation of Unicode with the limited ASCII character subset 
 Swift Package Manager is the recommended way to install PunycodeSwift.
 
 > [!IMPORTANT]
-> The CocoaPods trunk becomes permanently read-only on December 2, 2026. Versions released after that date will be available via Swift Package Manager (and Carthage on a best-effort basis) only. If you are using CocoaPods, please migrate to Swift Package Manager.
+> CocoaPods distribution ended with 4.0.0: versions 4.0.0 and later are available via Swift Package Manager (and Carthage on a best-effort basis) only. If you are using CocoaPods, please migrate to Swift Package Manager.
 
 ### Swift Package Manager
 
 Add the following to your `Package.swift` file.
+
+- macOS, iOS, tvOS, watchOS, visionOS, Linux, and Swift 5.9 (Xcode 15) or later
+    ```swift
+    dependencies: [
+        .package(url: "https://github.com/futamura/PunycodeSwift.git", .upToNextMajor(from: "4.0.0"))
+    ]
+    ```
 
 - macOS, iOS, tvOS, watchOS, visionOS, and Swift 5
     ```swift
@@ -54,6 +61,12 @@ Add the following to your `Package.swift` file.
 
 Add the following to your `Cartfile` and follow [these instructions](https://github.com/Carthage/Carthage#adding-frameworks-to-an-application).
 
+- macOS, iOS, tvOS, watchOS, visionOS, and Swift 5.9 or later
+
+    ```
+    github "futamura/PunycodeSwift" ~> 4.0
+    ```
+
 - macOS, iOS, tvOS, watchOS, visionOS, and Swift 5
 
     ```
@@ -75,9 +88,9 @@ Add the following to your `Cartfile` and follow [these instructions](https://git
 ### CocoaPods
 
 > [!WARNING]
-> CocoaPods distribution ends when the trunk becomes read-only on December 2, 2026. Existing versions will remain installable, but no new versions will be published. Please migrate to Swift Package Manager.
+> CocoaPods distribution has ended: 3.0.0 is the last version published as a pod. Existing versions remain installable until the trunk archive disappears, but no new versions will be published. Please migrate to Swift Package Manager.
 
-To integrate PunycodeSwift into your project, add the following to your `Podfile`.
+Existing installations reference the pod as follows.
 
 - macOS, iOS, tvOS, watchOS, visionOS, and Swift 5.0
 
