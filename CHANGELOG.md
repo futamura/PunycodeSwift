@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - CocoaPods publishing: 3.0.0 is the last version available as the `Punycode` pod. 4.0.0 and later are distributed via Swift Package Manager (and Carthage on a best-effort basis). The podspec, the pod lint CI job, and the trunk push in the release workflow are removed.
+- Leftover linter configs (`.swiftlint.yml`, `.hound.yml`) and `.swift-version`; linting is enforced by swift-format via CI and fastlane.
+- The swift-format script build phase in the Xcode project: it rewrote sources on every build and is incompatible with Xcode's user script sandboxing.
+
+### Changed
+
+- Codecov project status now allows a 1% threshold, so coverage noise no longer fails CI.
 
 ## [4.0.0] - 2026-08-18
 

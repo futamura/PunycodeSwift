@@ -109,7 +109,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A75359C12C7ABA7D00564274 /* Build configuration list for PBXNativeTarget "Punycode" */;
 			buildPhases = (
-				A719B8B92C7C7F8E008E89EF /* Lint codes with swift-format */,
 				A75359AA2C7ABA7C00564274 /* Headers */,
 				A75359AB2C7ABA7C00564274 /* Sources */,
 				A75359AC2C7ABA7C00564274 /* Frameworks */,
@@ -196,28 +195,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		A719B8B92C7C7F8E008E89EF /* Lint codes with swift-format */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Lint codes with swift-format";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/zsh;
-			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\n\nif which swift-format >/dev/null; then\n    swift-format format --in-place --ignore-unparsable-files --configuration .swift-format --recursive Sources Tests || true\n    swift-format lint --ignore-unparsable-files --configuration .swift-format --recursive Sources Tests || true\nelse\n    echo \"warning: swift-format not installed\"\nfi\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A75359AB2C7ABA7C00564274 /* Sources */ = {
