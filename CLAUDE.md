@@ -28,6 +28,10 @@ bundle exec fastlane gen_docs         # DocC static site into docc-site/ (via sc
 bundle exec fastlane set_version      # prompt for version; sets MARKETING_VERSION in the pbxproj
 bundle exec fastlane bump_version     # patch/minor/major bump; same effect
 
+# Same lanes without a TTY (agents, scripts) — the argument is required there
+bundle exec fastlane set_version version:4.0.2
+bundle exec fastlane bump_version type:patch
+
 # Interactive job menu (fzf)
 ./run.sh
 ```
@@ -50,7 +54,7 @@ Tests live in `Tests/PunycodeTests.swift` (single XCTest file; SPM test target n
 
 ## Versioning and release
 
-- Single source of truth for the version: `MARKETING_VERSION` in `Punycode.xcodeproj/project.pbxproj`. Fastlane and CI both read it. Never edit versions by hand — use `fastlane set_version` / `bump_version`.
+- Single source of truth for the version: `MARKETING_VERSION` in `Punycode.xcodeproj/project.pbxproj`. Fastlane and CI both read it. Never edit versions by hand — use `fastlane set_version` / `bump_version`. Both lanes prompt only when stdin is a TTY; without one, pass `version:` / `type:` or the lane fails rather than silently leaving the version untouched.
 - Branch flow: work on `develop`, PR into `main`.
 - CI (`.github/workflows/main.yml`) runs on push and pull request to `main`/`develop`: lint → per-platform xcodebuild tests (simulator devices resolved at runtime via `simctl`) → SPM (macOS + Linux via the official Swift container). It does not release. Carthage builds are not CI-verified.
 - The only required branch-protection check is `CI Success`. Codecov statuses are informational: `codecov.yml` gives the project status a 1% threshold, but the patch status targets the auto baseline and may fail on PRs whose new lines are defensive/unreachable guards — that does not block merging.

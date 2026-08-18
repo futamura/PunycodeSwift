@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Maintainer tooling: the `set_version` / `bump_version` fastlane lanes accept `version:` / `type:` arguments and fail loudly without a TTY, instead of reporting success while leaving the version unchanged. Version strings are now validated against an anchored pattern, so malformed input such as `1a2b3` is rejected rather than written to the project.
+
 ## [4.0.1] - 2026-08-18
 
 ### Removed
