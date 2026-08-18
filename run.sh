@@ -23,8 +23,6 @@ local option_list=(
 	" "
 	"Github - Update tag"
 	"Github - Fetch remote tag"
-	" "
-	"Public Suffix List - Download latest data"
 )
 
 local fastlane_command() {
@@ -43,7 +41,6 @@ local xcode_init() {
 	xcode_clean;
 	# rm -rf ./Carthage/*;
 	# carthage_update;
-	# psl_download;
 }
 
 local carthage_update() {
@@ -88,10 +85,6 @@ local github_fetch_remote_tag() {
     git fetch --tags --force;
 }
 
-local psl_download() {
-    python update-psl.py;
-}
-
 local bundle_init() {
     rm -rf .bundle;
 	rm -rf Gemfile.lock;
@@ -109,7 +102,6 @@ case "$selected_option" in
 	"Carthage - Update all platforms")           carthage_update;;
 	"Github - Update tag")                       github_update_tag;;
 	"Github - Fetch remote tag")                 github_fetch_remote_tag;;
-	"Public Suffix List - Download latest data") psl_download;;
 	*)                                           echo "Invalid option $selected_option" && exit 1;;
 esac
 
