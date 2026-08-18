@@ -127,23 +127,42 @@ public class Puny {
             let oldI: Int = i
             var w: Int = 1
             var k: Int = base
-            repeat {
-                let character: Character = punycodeInput.removeFirst()
+            var sequenceComplete: Bool = false
+            while !sequenceComplete {
+                /// The input must not end in the middle of a variable-length integer
+                guard let character: Character = punycodeInput.popFirst() else {
+                    return nil
+                }
                 guard let digit: Int = punycodeIndex(for: character) else {
                     return nil/// Failing on badly formatted punycode
                 }
-                i += digit * w
+                /// RFC 3492 section 6.4 requires overflow detection
+                let (weighted, weightedOverflow) = digit.multipliedReportingOverflow(by: w)
+                let (accumulated, accumulatedOverflow) = i.addingReportingOverflow(weighted)
+                guard !weightedOverflow, !accumulatedOverflow else {
+                    return nil
+                }
+                i = accumulated
                 let t: Int = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias)
                 if digit < t {
-                    break
+                    sequenceComplete = true
+                } else {
+                    let (nextW, nextWOverflow) = w.multipliedReportingOverflow(by: base - t)
+                    guard !nextWOverflow else {
+                        return nil
+                    }
+                    w = nextW
+                    k += base
                 }
-                w *= base - t
-                k += base
-            } while !punycodeInput.isEmpty
+            }
             bias = adaptBias(i - oldI, output.count + 1, oldI == 0)
-            n += i / (output.count + 1)
+            let (advancedN, advancedNOverflow) = n.addingReportingOverflow(i / (output.count + 1))
+            guard !advancedNOverflow else {
+                return nil
+            }
+            n = advancedN
             i %= (output.count + 1)
-            guard n >= 0x80, let scalar: Unicode.Scalar = UnicodeScalar(n) else {
+            guard n >= 0x80, let scalar: Unicode.Scalar = UnicodeScalar(n), scalar.isValid else {
                 return nil
             }
             output.insert(Character(scalar), at: i)
@@ -182,7 +201,13 @@ public class Puny {
                     minimumCodepoint = Int(scalar.value)
                 }
             }
-            delta += (minimumCodepoint - n) * (handled + 1)
+            /// RFC 3492 section 6.3 requires overflow detection
+            let (stepped, steppedOverflow) = (minimumCodepoint - n).multipliedReportingOverflow(by: handled + 1)
+            let (advancedDelta, advancedDeltaOverflow) = delta.addingReportingOverflow(stepped)
+            guard !steppedOverflow, !advancedDeltaOverflow else {
+                return nil
+            }
+            delta = advancedDelta
             n = minimumCodepoint
             for scalar: Unicode.Scalar in input.unicodeScalars {
                 if scalar.value < n {
@@ -216,17 +241,28 @@ public class Puny {
 
     /// Returns new string containing IDNA-encoded hostname.
     ///
+    /// The input is mapped before encoding: compatibility decomposition (NFKC,
+    /// which folds full-width forms and alternate dot characters), lowercasing,
+    /// and canonical composition (NFC). This covers the common IDNA mapping
+    /// cases; the full UTS #46 mapping table is intentionally not implemented.
+    ///
     /// - Parameter input: The Substring to be encoded.
     /// - Returns: An IDNA encoded hostname or nil if the string can't be encoded.
     public func encodeIDNA(_ input: Substring) -> String? {
-        let parts: [Substring] = input.split(separator: ".")
+        /// The ideographic full stop survives NFKC, so it is mapped explicitly
+        let mapped: String = input
+            .precomposedStringWithCompatibilityMapping
+            .lowercased()
+            .precomposedStringWithCanonicalMapping
+            .replacingOccurrences(of: "\u{3002}", with: ".")
+        let parts: [Substring] = mapped.split(separator: ".")
         var output: String = ""
         for part: Substring in parts {
             if output.count > 0 {
                 output.append(".")
             }
             if part.rangeOfCharacter(from: CharacterSet.urlHostAllowed.inverted) != nil {
-                guard let encoded: String = part.lowercased().punycodeEncoded else { return nil }
+                guard let encoded: String = part.punycodeEncoded else { return nil }
                 output += ace + encoded
             } else {
                 output += part
@@ -246,13 +282,90 @@ public class Puny {
             if output.count > 0 {
                 output.append(".")
             }
-            if part.hasPrefix(ace) {
-                guard let decoded: String = part.dropFirst(ace.count).punycodeDecoded else { return nil }
+            /// The ACE prefix is case-insensitive (RFC 5890)
+            let lowercasedPart: String = part.lowercased()
+            if lowercasedPart.hasPrefix(ace) {
+                guard let decoded: String = lowercasedPart.dropFirst(ace.count).punycodeDecoded else { return nil }
                 output += decoded
             } else {
                 output += part
             }
         }
         return output
+    }
+
+    /// Returns a new string with the host portion of a URL-shaped string
+    /// IDNA-encoded. Scheme, userinfo, port, path, query, and fragment are
+    /// preserved unchanged.
+    ///
+    /// - Parameter input: The Substring containing a URL or a bare hostname.
+    /// - Returns: The string with its host IDNA-encoded, or nil if the host can't be encoded.
+    public func encodeIDNAURL(_ input: Substring) -> String? {
+        return transformURLHost(input) { encodeIDNA($0) }
+    }
+
+    /// Returns a new string with the host portion of a URL-shaped string
+    /// decoded from IDNA representation. Scheme, userinfo, port, path, query,
+    /// and fragment are preserved unchanged.
+    ///
+    /// - Parameter input: The Substring containing a URL or a bare hostname.
+    /// - Returns: The string with its host decoded, or nil if the host doesn't contain correct encoding.
+    public func decodedIDNAURL(_ input: Substring) -> String? {
+        return transformURLHost(input) { decodedIDNA($0) }
+    }
+
+    /// Locates the host portion of `[scheme://][userinfo@]host[:port][/path?query#fragment]`
+    /// and replaces it with the result of `transform`. IPv6 literals pass
+    /// through untransformed; an unterminated literal returns nil.
+    private func transformURLHost(_ input: Substring, using transform: (Substring) -> String?) -> String? {
+        /// Authority starts after "scheme://" or a protocol-relative "//"
+        var authorityStart: Substring.Index = input.startIndex
+        if let delimiterRange: Range<Substring.Index> = input.range(of: "://"),
+            isValidScheme(input[..<delimiterRange.lowerBound])
+        {
+            authorityStart = delimiterRange.upperBound
+        } else if input.hasPrefix("//") {
+            authorityStart = input.index(input.startIndex, offsetBy: 2)
+        }
+
+        /// Authority ends at the first path, query, or fragment delimiter
+        let authorityEnd: Substring.Index =
+            input[authorityStart...].firstIndex { $0 == "/" || $0 == "?" || $0 == "#" } ?? input.endIndex
+
+        /// The host follows the last "@" of the authority
+        let authority: Substring = input[authorityStart..<authorityEnd]
+        var hostStart: Substring.Index = authorityStart
+        if let atIndex: Substring.Index = authority.lastIndex(of: "@") {
+            hostStart = authority.index(after: atIndex)
+        }
+
+        let hostAndPort: Substring = input[hostStart..<authorityEnd]
+        if hostAndPort.hasPrefix("[") {
+            /// IPv6 literals are not IDNA-encoded
+            guard hostAndPort.contains("]") else {
+                return nil
+            }
+            return String(input)
+        }
+
+        /// The host ends where the port begins
+        let hostEnd: Substring.Index = hostAndPort.firstIndex(of: ":") ?? authorityEnd
+
+        guard let transformedHost: String = transform(input[hostStart..<hostEnd]) else {
+            return nil
+        }
+        return String(input[..<hostStart]) + transformedHost + String(input[hostEnd...])
+    }
+
+    /// A scheme is a letter followed by letters, digits, "+", "-", or "." (RFC 3986).
+    /// Anything else before "://" (for example a query string) is not a scheme.
+    private func isValidScheme(_ candidate: Substring) -> Bool {
+        guard let first: Character = candidate.first, first.isLetter, first.isASCII else {
+            return false
+        }
+        return candidate.allSatisfy { character in
+            (character.isASCII && (character.isLetter || character.isNumber))
+                || character == "+" || character == "-" || character == "."
+        }
     }
 }

@@ -1,10 +1,8 @@
 [![Swift Package Manager compatible](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange)](https://github.com/futamura/PunycodeSwift)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg)](https://github.com/futamura/PunycodeSwift)
-[![Cocoapods Version](https://img.shields.io/cocoapods/v/Punycode.svg)](https://cocoapods.org/pods/Punycode)
-[![Cocoapods Platform](https://img.shields.io/cocoapods/p/Punycode.svg)](https://cocoadocs.org/docsets/Punycode)
 [![Build](https://github.com/futamura/PunycodeSwift/actions/workflows/main.yml/badge.svg)](https://github.com/futamura/PunycodeSwift/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/futamura/PunycodeSwift/branch/main/graph/badge.svg)](https://codecov.io/gh/futamura/PunycodeSwift)
-![Language](https://img.shields.io/badge/Language-Swift%205.0-orange.svg)
+![Language](https://img.shields.io/badge/Language-Swift%205.9-orange.svg)
 ![License](https://img.shields.io/github/license/futamura/PunycodeSwift.svg)
 
 # PunycodeSwift
@@ -21,7 +19,8 @@ Punycode is a representation of Unicode with the limited ASCII character subset 
 - tvOS 12.0 or later
 - watchOS 4.0 or later
 - visionOS 1.0 or later
-- Swift 5.0 or later
+- Linux
+- Swift 5.9 or later (Xcode 15 or later) for Swift Package Manager
 
 ## Installation
 
@@ -116,7 +115,25 @@ sushi = sushi.idnaDecoded!
 print(sushi)  // "寿司"
 ```
 
+### Encode and decode the host of a URL:
+
+`idnaEncoded` expects a bare hostname. For a full URL, use `idnaEncodedURL` / `idnaDecodedURL`, which transform only the host and leave the scheme, userinfo, port, path, query, and fragment unchanged.
+
+```swift
+import Punycode
+
+var url: String = "http://www.ラーメン.寿司.co.jp/メニュー"
+
+url = url.idnaEncodedURL!
+print(url)  // http://www.xn--4dkp5a8a.xn--sprr0q.co.jp/メニュー
+
+url = url.idnaDecodedURL!
+print(url)  // http://www.ラーメン.寿司.co.jp/メニュー
+```
+
 ### Encode and decode Punycode directly:
+
+`punycodeEncoded` / `punycodeDecoded` are the raw RFC 3492 transformation of a single label: no `xn--` prefix is added and dots are not treated as label separators.
 
 ```swift
 import Punycode

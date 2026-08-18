@@ -130,6 +130,138 @@ final class PunycodeTests: XCTestCase {
         XCTAssertNoThrow(invalidPunycode.idnaDecoded)
     }
 
+    /// Issue #78: malformed punycode must decode to nil, never to garbage characters.
+
+    func testDecodingIncompleteDigitSequenceReturnsNil() {
+        /// RFC 3492: the input ends in the middle of a variable-length integer
+        XCTAssertNil("y".punycodeDecoded)
+        XCTAssertNil("y-z".punycodeDecoded)
+        XCTAssertNil("a-b-c-d".punycodeDecoded)
+    }
+
+    func testDecodingC1ControlCharactersReturnsNil() {
+        /// "abcd" decodes to U+0080-range C1 control characters, which never
+        /// appear in legitimate text
+        XCTAssertNil("abcd".punycodeDecoded)
+    }
+
+    func testDecodingInvalidDigitsReturnsNil() {
+        XCTAssertNil("-".punycodeDecoded)
+        XCTAssertNil("аб".punycodeDecoded)
+    }
+
+    func testDecodingOverflowReturnsNilInsteadOfTrapping() {
+        /// RFC 3492 section 6.4 requires overflow detection; unchecked
+        /// arithmetic would trap on inputs like these ('9' is the highest
+        /// digit value, so the weight keeps multiplying without a break)
+        XCTAssertNil(String(repeating: "9", count: 30).punycodeDecoded)
+        XCTAssertNil(String(repeating: "z", count: 64).punycodeDecoded)
+    }
+
+    func testDecodingValidEdgeCases() {
+        /// RFC 3492: all-ASCII input encodes to "<input>-", so these round-trip
+        XCTAssertEqual("-".punycodeEncoded, "--")
+        XCTAssertEqual("--".punycodeDecoded, "-")
+        XCTAssertEqual("y".punycodeEncoded, "y-")
+        XCTAssertEqual("y-".punycodeDecoded, "y")
+        /// Valid samples from the issue #78 report
+        XCTAssertEqual("90a".punycodeDecoded, "б")
+        XCTAssertEqual("--9sb".punycodeDecoded, "б-")
+        XCTAssertEqual("--btb".punycodeDecoded, "-б")
+        XCTAssertEqual("80acde".punycodeDecoded, "абвг")
+        XCTAssertEqual("abcd-u8d".punycodeDecoded, "ёabcd")
+        XCTAssertEqual("abcd-y8d".punycodeDecoded, "abcdё")
+        XCTAssertEqual("a-b-c-d-lng".punycodeDecoded, "ёa-b-c-d")
+        XCTAssertEqual("-a-b-c-d-vbhklm5q".punycodeDecoded, "ёпрст-a-b-c-d")
+        XCTAssertEqual("a-b-c-d--3bhklm5q".punycodeDecoded, "a-b-c-d-ёпрст")
+        XCTAssertEqual("bcher-kva".punycodeDecoded, "bücher")
+        XCTAssertEqual("80abnmycp7evc".punycodeDecoded, "обращения")
+        XCTAssertEqual("r1aadaaghijkl".punycodeDecoded, "ттуууфхцчшщ")
+    }
+
+    /// Issue #4: punycodeEncoded is raw RFC 3492 (single label, no ACE prefix);
+    /// idnaEncoded is for hostnames.
+
+    func testPunycodeEncodedIsRawRFC3492() {
+        XCTAssertEqual("goo.gl".punycodeEncoded, "goo.gl-")
+        XCTAssertEqual("goo.gl".idnaEncoded, "goo.gl")
+        XCTAssertEqual("example.com".idnaEncoded, "example.com")
+    }
+
+    func testIDNAEncodingAppliesUnicodeMapping() {
+        /// Full-width forms, alternate dots, and case are mapped before encoding
+        XCTAssertEqual("ＧＯＯ．ＧＬ".idnaEncoded, "goo.gl")
+        XCTAssertEqual("example。com".idnaEncoded, "example.com")
+        XCTAssertEqual("example｡com".idnaEncoded, "example.com")
+        XCTAssertEqual("EXAMPLE.COM".idnaEncoded, "example.com")
+        XCTAssertEqual("日本語。ＪＰ".idnaEncoded, "xn--wgv71a119e.jp")
+        /// NFC: the decomposed form (u + combining diaeresis) encodes
+        /// identically to the composed form
+        XCTAssertEqual("bu\u{0308}cher.de".idnaEncoded, "xn--bcher-kva.de")
+        XCTAssertEqual("bücher.de".idnaEncoded, "xn--bcher-kva.de")
+    }
+
+    func testIDNADecodingAcceptsUppercaseACEPrefix() {
+        XCTAssertEqual("XN--BCHER-KVA.de".idnaDecoded, "bücher.de")
+    }
+
+    /// idnaEncodedURL / idnaDecodedURL: only the host portion of a URL-shaped
+    /// string is transformed; scheme, userinfo, port, path, query, and
+    /// fragment pass through unchanged.
+
+    func testIDNAEncodedURL() {
+        XCTAssertEqual(
+            "http://www.ラーメン.寿司.co.jp".idnaEncodedURL,
+            "http://www.xn--4dkp5a8a.xn--sprr0q.co.jp"
+        )
+        XCTAssertEqual("https://test.com".idnaEncodedURL, "https://test.com")
+        XCTAssertEqual(
+            "http://ラーメン.jp/メニュー?q=寿司#上".idnaEncodedURL,
+            "http://xn--4dkp5a8a.jp/メニュー?q=寿司#上"
+        )
+        XCTAssertEqual("http://ラーメン.jp:8080/".idnaEncodedURL, "http://xn--4dkp5a8a.jp:8080/")
+        XCTAssertEqual("http://user@ラーメン.jp/".idnaEncodedURL, "http://user@xn--4dkp5a8a.jp/")
+        XCTAssertEqual("http://[::1]:8080/".idnaEncodedURL, "http://[::1]:8080/")
+        XCTAssertEqual("//ラーメン.jp/path".idnaEncodedURL, "//xn--4dkp5a8a.jp/path")
+        XCTAssertEqual("www.ラーメン.jp/path".idnaEncodedURL, "www.xn--4dkp5a8a.jp/path")
+        /// Invalid schemes are not treated as scheme delimiters
+        XCTAssertEqual("1a://ラーメン.jp/x".idnaEncodedURL, "1a://ラーメン.jp/x")
+        XCTAssertEqual("://test.com".idnaEncodedURL, "://test.com")
+        /// "://" inside the query must not be mistaken for a scheme delimiter
+        XCTAssertEqual(
+            "test.com/?u=http://ラーメン.jp".idnaEncodedURL,
+            "test.com/?u=http://ラーメン.jp"
+        )
+    }
+
+    func testIDNADecodedURL() {
+        XCTAssertEqual(
+            "http://www.xn--4dkp5a8a.xn--sprr0q.co.jp".idnaDecodedURL,
+            "http://www.ラーメン.寿司.co.jp"
+        )
+        XCTAssertEqual("http://xn--4dkp5a8a.jp:8080/x".idnaDecodedURL, "http://ラーメン.jp:8080/x")
+        XCTAssertEqual("http://user@xn--4dkp5a8a.jp/".idnaDecodedURL, "http://user@ラーメン.jp/")
+        XCTAssertEqual("http://[::1]/".idnaDecodedURL, "http://[::1]/")
+        XCTAssertEqual("https://test.com".idnaDecodedURL, "https://test.com")
+    }
+
+    func testIDNAURLRoundTrip() {
+        let url: String = "http://user@www.ラーメン.寿司.co.jp:8080/メニュー?q=寿司#上"
+        guard let encoded: String = url.idnaEncodedURL else {
+            return XCTFail("encoding failed")
+        }
+        XCTAssertEqual(encoded.idnaDecodedURL, url)
+    }
+
+    func testIDNAURLInvalidInputReturnsNil() {
+        /// Malformed punycode in the host
+        XCTAssertNil("http://xn--abcd.jp".idnaDecodedURL)
+        /// C1 control character in the host
+        XCTAssertNil("http://a\u{0085}b.jp".idnaEncodedURL)
+        /// Unterminated IPv6 literal
+        XCTAssertNil("http://[::1/".idnaEncodedURL)
+    }
+
     //    func testFoo1() {
     //        var sushi: String = "寿司"
     //
