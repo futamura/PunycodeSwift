@@ -69,29 +69,13 @@ Lint Swift Package Manager
 
 Build Carthage
 
-### lint_cocoapods
-
-```sh
-[bundle exec] fastlane lint_cocoapods
-```
-
-Lint Cocoapods
-
-### push_cocoapods
-
-```sh
-[bundle exec] fastlane push_cocoapods
-```
-
-Push Cocoapods
-
 ### gen_docs
 
 ```sh
 [bundle exec] fastlane gen_docs
 ```
 
-Generate Swift Docs
+Generate DocC documentation site into docc-site/
 
 ----
 
