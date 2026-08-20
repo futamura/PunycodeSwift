@@ -1,10 +1,14 @@
 # Swift Package Index build configuration.
 # https://swiftpackageindex.com/SwiftPackageIndex/SPIManifest/documentation/spimanifest/commonusecases
 #
-# documentation_targets makes SPI build and host the DocC documentation for the
-# package. This is independent of the GitHub Pages site built by
-# scripts/gen_docs.sh; both stay available.
+# SPI builds and hosts the DocC documentation for the Punycode target. The
+# whole public API lives in extensions on String/Substring, so the build needs
+# --include-extended-types; without it the generated site is almost empty.
+# This mirrors the -emit-extension-block-symbols flag in scripts/gen_docs.sh,
+# which builds the GitHub Pages site. Both documentation locations stay
+# available.
 version: 1
 builder:
   configs:
     - documentation_targets: [Punycode]
+      custom_documentation_parameters: [--include-extended-types]
