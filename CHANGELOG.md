@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.2] - 2026-08-21
+
 ### Added
 
 - Swift Package Index listing, with an `.spi.yml` that has SPI build and host the DocC documentation alongside the GitHub Pages site and sets the author line shown on the package page. The README gains the SPI Swift version and platform compatibility badges.
@@ -112,7 +114,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release: Punycode (RFC 3492) encode/decode and IDNA encode/decode via `String` / `Substring` extensions.
 
-[Unreleased]: https://github.com/futamura/PunycodeSwift/compare/4.0.1...HEAD
+[Unreleased]: https://github.com/futamura/PunycodeSwift/compare/4.0.2...HEAD
+[4.0.2]: https://github.com/futamura/PunycodeSwift/compare/4.0.1...4.0.2
 [4.0.1]: https://github.com/futamura/PunycodeSwift/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/futamura/PunycodeSwift/compare/3.0.0...4.0.0
 [3.0.0]: https://github.com/futamura/PunycodeSwift/compare/2.1.1...3.0.0
