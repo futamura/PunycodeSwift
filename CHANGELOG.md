@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Swift Package Index listing, with an `.spi.yml` that has SPI build and host the DocC documentation alongside the GitHub Pages site. The README gains the SPI Swift version and platform compatibility badges.
+
 ### Removed
 
 - The dead "Public Suffix List" entry in the `./run.sh` menu, left over from TLDExtractSwift's copy of the script; it called an `update-psl.py` that does not exist in this repository.

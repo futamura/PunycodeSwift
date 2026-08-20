@@ -1,0 +1,10 @@
+# Swift Package Index build configuration.
+# https://swiftpackageindex.com/SwiftPackageIndex/SPIManifest/documentation/spimanifest/commonusecases
+#
+# documentation_targets makes SPI build and host the DocC documentation for the
+# package. This is independent of the GitHub Pages site built by
+# scripts/gen_docs.sh; both stay available.
+version: 1
+builder:
+  configs:
+    - documentation_targets: [Punycode]
