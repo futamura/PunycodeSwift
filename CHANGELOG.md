@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.3] - 2026-08-22
+
 ### Added
 
 - Maintainer tooling: `CLAUDE.md` describes how the two simulator CI flakes present and how to tell them apart, and gains a Swift Package Index section covering what each `.spi.yml` key controls and why changes to the file take up to a day to show on the package page. The lint job gains the `timeout-minutes` every other job already had.
@@ -126,7 +128,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release: Punycode (RFC 3492) encode/decode and IDNA encode/decode via `String` / `Substring` extensions.
 
-[Unreleased]: https://github.com/futamura/PunycodeSwift/compare/4.0.2...HEAD
+[Unreleased]: https://github.com/futamura/PunycodeSwift/compare/4.0.3...HEAD
+[4.0.3]: https://github.com/futamura/PunycodeSwift/compare/4.0.2...4.0.3
 [4.0.2]: https://github.com/futamura/PunycodeSwift/compare/4.0.1...4.0.2
 [4.0.1]: https://github.com/futamura/PunycodeSwift/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/futamura/PunycodeSwift/compare/3.0.0...4.0.0
