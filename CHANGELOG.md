@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Maintainer tooling: the simulator test jobs retry once when `xcodebuild` aborts with exit code 134, which the simulator does during teardown after every test has already run. Any other non-zero status still fails the job immediately.
+
 ## [4.0.3] - 2026-08-22
 
 ### Added
