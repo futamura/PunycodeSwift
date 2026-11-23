@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-11-23
+
+### Changed
+
+- **Breaking:** Raised the minimum deployment targets to macOS 12, iOS 15, tvOS 15 and watchOS 9 (visionOS stays at 1.0). These are the lowest versions Xcode 27 builds for. Apps that need the older targets can stay on 4.x.
+
 ## [4.0.4] - 2026-10-05
 
 ### Fixed
@@ -132,7 +138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release: Punycode (RFC 3492) encode/decode and IDNA encode/decode via `String` / `Substring` extensions.
 
-[Unreleased]: https://github.com/futamura/PunycodeSwift/compare/4.0.4...HEAD
+[Unreleased]: https://github.com/futamura/PunycodeSwift/compare/5.0.0...HEAD
+[5.0.0]: https://github.com/futamura/PunycodeSwift/compare/4.0.4...5.0.0
 [4.0.4]: https://github.com/futamura/PunycodeSwift/compare/4.0.3...4.0.4
 [4.0.3]: https://github.com/futamura/PunycodeSwift/compare/4.0.2...4.0.3
 [4.0.2]: https://github.com/futamura/PunycodeSwift/compare/4.0.1...4.0.2

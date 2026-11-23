@@ -15,10 +15,10 @@
 Punycode is a representation of Unicode with the limited ASCII character subset used for Internet host names. Using Punycode, host names containing Unicode characters are transcoded to a subset of ASCII consisting of letters, digits, and hyphen, which is called the Letter-Digit-Hyphen (LDH) subset. For example, München (German name for Munich) is encoded as Mnchen-3ya. [(Wikipedia)](https://en.wikipedia.org/wiki/Punycode)
 
 ## Requirements
-- macOS 10.13 or later
-- iOS 12.0 or later
-- tvOS 12.0 or later
-- watchOS 4.0 or later
+- macOS 12.0 or later
+- iOS 15.0 or later
+- tvOS 15.0 or later
+- watchOS 9.0 or later
 - visionOS 1.0 or later
 - Linux
 - Swift 5.9 or later (Xcode 15 or later) for Swift Package Manager
@@ -34,7 +34,14 @@ Swift Package Manager is the recommended way to install PunycodeSwift.
 
 Add the following to your `Package.swift` file.
 
-- macOS, iOS, tvOS, watchOS, visionOS, Linux, and Swift 5.9 (Xcode 15) or later
+- macOS 12, iOS 15, tvOS 15, watchOS 9, visionOS 1, Linux, and Swift 5.9 (Xcode 15) or later
+    ```swift
+    dependencies: [
+        .package(url: "https://github.com/futamura/PunycodeSwift.git", .upToNextMajor(from: "5.0.0"))
+    ]
+    ```
+
+- macOS 10.13, iOS 12, tvOS 12, watchOS 4, visionOS 1, Linux, and Swift 5.9 (Xcode 15) or later
     ```swift
     dependencies: [
         .package(url: "https://github.com/futamura/PunycodeSwift.git", .upToNextMajor(from: "4.0.0"))
