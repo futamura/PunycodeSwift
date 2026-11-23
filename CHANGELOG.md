@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Breaking:** Raised the minimum deployment targets to macOS 12, iOS 15, tvOS 15 and watchOS 9 (visionOS stays at 1.0). These are the lowest versions Xcode 27 builds for. Apps that need the older targets can stay on 4.x.
+
 ## [4.0.4] - 2026-10-05
 
 ### Fixed
