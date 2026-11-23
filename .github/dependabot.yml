@@ -1,0 +1,28 @@
+# Version updates for the dev tooling. The Swift package itself has no
+# dependencies, so only the Ruby gems (fastlane, slather) and the workflow
+# actions are tracked. PRs target develop, following the develop -> main flow;
+# security updates always target the default branch (main) regardless.
+version: 2
+updates:
+  - package-ecosystem: bundler
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+    groups:
+      gems:
+        patterns: ["*"]
+    commit-message:
+      prefix: chore
+      include: scope
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
